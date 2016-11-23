@@ -5,17 +5,22 @@ class List extends React.Component {
 
   renderItem (text, i) {
     return (
-      <li key={i}>
-        {text} <button type="button" onClick={() => this.props.onDelete(i)}>x</button>
-      </li>
+      <tr key={i}>
+        <td>{text}</td>
+        <td>
+          <button type="button" onClick={() => this.props.onDelete(i)}>
+            x
+          </button>
+        </td>
+      </tr>
     )
   }
 
   render ({ items }) {
     return (
-      <ul class="items">
+      <table class="items">
         {items.map(this.renderItem, this)}
-      </ul>
+      </table>
     )
   }
 }
