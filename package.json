@@ -1,6 +1,6 @@
 {
-  "name": "react-featherweight",
-  "version": "1.0.0",
+  "name": "react-incremental",
+  "version": "0.0.0",
   "main": "index.js",
   "license": "MIT",
   "scripts": {
@@ -31,7 +31,8 @@
       [
         "es2015",
         {
-          "loose": true
+          "loose": true,
+          "modules": false
         }
       ],
       "stage-0",

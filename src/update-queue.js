@@ -1,4 +1,4 @@
-import Feather from './react-featherweight'
+import ReactIncremental from './react-incremental'
 import {patch} from 'incremental-dom'
 
 export default class Updater {
@@ -36,22 +36,30 @@ export default class Updater {
     if (instance.componentWillReceiveProps) {
       instance.componentWillReceiveProps(props)
     }
+
+    instance.props = props
   }
 
   enqueueForceUpdate (instance) {
-    Feather.render(this.owner, this.root)
+    ReactIncremental.render(this.owner, this.root)
   }
 
   enqueueReplaceState (instance, state) {
     if (!instance.shouldComponentUpdate || instance.shouldComponentUpdate(instance.props, state)) {
       instance.state = state
 
-      this.enqueueForceUpdate()
+      ReactIncremental.render(this.owner, this.root)
     }
   }
 
   enqueueSetState (instance, state) {
-    return this.enqueueReplaceState(instance, Object.assign({}, instance.state, state))
+    let next = Object.assign({}, instance.state, state)
+
+    if (!instance.shouldComponentUpdate || instance.shouldComponentUpdate(instance.props, next)) {
+      instance.state = next
+
+      ReactIncremental.render(this.owner, this.root)
+    }
   }
 
 }

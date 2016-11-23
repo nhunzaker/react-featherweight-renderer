@@ -11,17 +11,11 @@ var config = module.exports = {
     path: __dirname + "/dist",
     filename: "[name].js",
   },
-
+  
   module: {
     rules: [{
       test: /\.js$/,
       use: ['babel']
     }]
-  }
-}
-
-if (process.env.NODE_ENV === 'production') {
-  config.externals = {
-    'react': 'react'
   }
 }

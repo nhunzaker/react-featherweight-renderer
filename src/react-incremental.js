@@ -7,46 +7,38 @@
  } from 'incremental-dom'
 
 import UpdateQueue from './update-queue'
+import Cache from './cache'
 
-const instances = new Map()
-const toMount = []
+let toMount = []
 
-function renderComponent (element, owner, root) {
-  let component = instances.get(element)
+function renderComponent (element, owner, root, key) {
+  let component = Cache.get(key)
 
   if (component == null) {
     component = new element.type(element.props, null, new UpdateQueue(owner, root))
 
     component.updater.enqueueWillMount(component)
 
-    instances.set(element, component)
+    Cache.set(key, component)
 
     toMount.push(component)
   } else {
-    component.updater.enqueueWillReceiveProps(element.props)
+    component.updater.enqueueWillReceiveProps(component, element.props)
   }
 
   let tree = component.render(component.props, component.state)
 
-  return rasterize(tree, owner)
+  rasterize(tree, owner, root, key)
 }
 
-function renderChildren (children, owner, root) {
-  if (Array.isArray(children)) {
-    children.forEach(child => rasterize(child, owner))
-  } else if (children != null) {
-    rasterize(children, owner)
-  }
-}
-
-export function rasterize (element, owner, root) {
+export function rasterize (element, owner, root, key) {
   if (element == null) {
     return
   } else if (typeof element === 'string') {
     text(element)
     return
   } else if (typeof element.type === 'function') {
-    renderComponent(element, owner, root)
+    renderComponent(element, owner, root, key)
     return
   }
 
@@ -63,9 +55,19 @@ export function rasterize (element, owner, root) {
     pairs.push(typeof value === 'function' ? key.toLowerCase() : key, value)
   }
 
-  if (element.props.children) {
-    elementOpen(element.type, element.key, element, ...pairs)
-    renderChildren(element.props.children, owner, root)
+  let children = element.props.children
+
+  if (children) {
+    elementOpen(element.type, key, null, ...pairs)
+
+    if (Array.isArray(children)) {
+      children.forEach(function rasterizeChild (child, i) {
+        rasterize(child, owner, root, `${key}.${child.key != null ? child.key : i}`)
+      })
+    } else if (children != null) {
+      rasterize(children, owner, root, children.key != null ? child.key : '0')
+    }
+
     elementClose(element.type)
   } else {
     elementVoid(element.type, element.key, element, ...pairs)
@@ -76,7 +78,7 @@ export default {
 
   render (element, container) {
     patch(container, () => {
-      rasterize(element, element, container)
+      rasterize(element, element, container, 'root')
 
       while (toMount.length) {
         let component = toMount.shift()
