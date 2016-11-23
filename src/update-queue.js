@@ -1,5 +1,4 @@
 import ReactIncremental from './react-incremental'
-import {patch} from 'incremental-dom'
 import cache from './cache'
 
 export default class Updater {
@@ -42,7 +41,7 @@ export default class Updater {
   }
 
   update (instance) {
-    ReactIncremental.render(this.element, cache.owner.get(this.key), this.key)
+    ReactIncremental.render(this.element, cache.owners[this.key], this.key)
   }
 
   enqueueForceUpdate (instance) {

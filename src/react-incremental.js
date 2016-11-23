@@ -10,14 +10,14 @@ import UpdateQueue from './update-queue'
 import cache from './cache'
 
 function renderComponent (element, key) {
-  let component = cache.components.get(key)
+  let component = cache.components[key]
 
   if (component == null) {
     component = new element.type(element.props, null, new UpdateQueue(key, element))
 
     component.updater.enqueueWillMount(component)
 
-    cache.components.set(key, component)
+    cache.components[key] = component
   } else {
     component.updater.enqueueWillReceiveProps(component, element.props)
   }
