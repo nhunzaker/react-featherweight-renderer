@@ -1,10 +1,11 @@
- import {
-   elementOpen,
-   elementClose,
-   elementVoid,
-   text,
-   patch
- } from 'incremental-dom'
+import React from 'react'
+import {
+  elementOpen,
+  elementClose,
+  elementVoid,
+  text,
+  patch
+} from 'incremental-dom'
 
 import UpdateQueue from './update-queue'
 import cache from './cache'
@@ -13,6 +14,7 @@ function renderComponent (element, key) {
   let component = cache.components[key]
 
   if (component == null) {
+    // TODO: Second argument of React.Component.constructor is context
     component = new element.type(element.props, null, new UpdateQueue(key, element))
 
     component.updater.enqueueWillMount(component)
@@ -25,6 +27,23 @@ function renderComponent (element, key) {
   return component.render(component.props, component.state)
 }
 
+function getPropList (props)  {
+  let pairs = []
+
+  for (let key in props) {
+    if (key === 'children') {
+      continue
+    }
+
+    let value = props[key]
+
+    // Lowercase keys for events
+    pairs.push(typeof value === 'function' ? key.toLowerCase() : key, value)
+  }
+
+  return pairs
+}
+
 function rasterize (element, key) {
   if (element == null) {
     return
@@ -35,37 +54,19 @@ function rasterize (element, key) {
     element = renderComponent(element, key)
   }
 
-  let pairs = []
-
-  for (let key in element.props) {
-    if (key === 'children') {
-      continue
-    }
-
-    let value = element.props[key]
-
-    // Lowercase keys for events
-    pairs.push(typeof value === 'function' ? key.toLowerCase() : key, value)
-  }
-
+  let pairs = getPropList(element.props)
   let children = element.props.children
 
   if (children) {
     elementOpen(element.type, key, null, ...pairs)
 
-    // Note: Could use React.Children here, but the stack trace is pretty
-    // deep. Keep it shallow...
-    if (Array.isArray(children)) {
-      children.forEach(function rasterizeChild (child, i) {
-        rasterize(child, `${key}.${child.key != null ? child.key : i}`)
-      })
-    } else if (children != null) {
-      rasterize(children, `${key}.${children.key != null ? children.key : 0}`)
-    }
+    React.Children.forEach(children, function rasterizeChild (child, i) {
+      rasterize(child, `${key}.${child.key != null ? child.key : i}`)
+    })
 
     elementClose(element.type)
   } else {
-    elementVoid(element.type, element.key, element, ...pairs)
+    elementVoid(element.type, element.key, null, ...pairs)
   }
 }
 
