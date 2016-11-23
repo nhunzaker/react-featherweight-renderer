@@ -17,7 +17,7 @@ function mount (node) {
 }
 
 function unmount (node) {
-  delete owner[node.__incrementalDOMData.key]
+  delete owners[node.__incrementalDOMData.key]
 }
 
 notifications.nodesCreated = function (nodes) {
