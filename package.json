@@ -4,7 +4,7 @@
   "main": "index.js",
   "license": "MIT",
   "scripts": {
-    "start": "webpack-dev-server --quiet",
+    "start": "webpack-dev-server --quiet --content-base ./example",
     "build": "NODE_ENV=production webpack -p"
   },
   "devDependencies": {
