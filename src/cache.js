@@ -1,13 +1,31 @@
-let bank = {}
+import {notifications} from 'incremental-dom'
 
-export default  {
+const components = new Map()
+const owner = new Map()
 
-  get (key) {
-    return bank[key]
-  },
+function mount (node) {
+  let key = node.__incrementalDOMData.key
+  let component = components.get(key)
 
-  set (key, value) {
-    bank[key] = value
+  if (component) {
+    // Owner is the parent of the node. This is probably wrong, but it
+    // keeps input focus!
+    owner.set(key, node.parentNode)
+
+    component.updater.enqueueMount(component)
   }
-
 }
+
+function unmount (node) {
+  owner.delete(node.__incrementalDOMData.key)
+}
+
+notifications.nodesCreated = function (nodes) {
+  nodes.forEach(mount)
+}
+
+notifications.nodesDeleted = function (nodes) {
+  nodes.forEach(unmount)
+}
+
+export default { components, owner }

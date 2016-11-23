@@ -1,11 +1,12 @@
 import ReactIncremental from './react-incremental'
 import {patch} from 'incremental-dom'
+import cache from './cache'
 
 export default class Updater {
 
-  constructor (owner, root) {
-    this.owner = owner
-    this.root = root
+  constructor (key, element) {
+    this.key = key
+    this.element = element
   }
 
   isMounted (instance) {
@@ -40,15 +41,19 @@ export default class Updater {
     instance.props = props
   }
 
+  update (instance) {
+    ReactIncremental.render(this.element, cache.owner.get(this.key), this.key)
+  }
+
   enqueueForceUpdate (instance) {
-    ReactIncremental.render(this.owner, this.root)
+    this.update(instance)
   }
 
   enqueueReplaceState (instance, state) {
     if (!instance.shouldComponentUpdate || instance.shouldComponentUpdate(instance.props, state)) {
       instance.state = state
 
-      ReactIncremental.render(this.owner, this.root)
+      this.update(instance)
     }
   }
 
@@ -58,7 +63,7 @@ export default class Updater {
     if (!instance.shouldComponentUpdate || instance.shouldComponentUpdate(instance.props, next)) {
       instance.state = next
 
-      ReactIncremental.render(this.owner, this.root)
+      this.update(instance)
     }
   }
 
